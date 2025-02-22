@@ -24,7 +24,7 @@ function App() {
           'Trim',
           'Drive Type',
           'Engine Model',
-          'Fuel Type - Primary'
+          'Fuel Type'  // Changed from 'Fuel Type - Primary'
         ];
         const keyFields = keyVariables.map(variable => ({
           Variable: variable,
@@ -49,6 +49,11 @@ function App() {
           type="text"
           value={vin}
           onChange={(e) => setVin(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              handleDecode(); // Triggers decode on Enter
+            }
+          }}
           placeholder="Enter VIN (e.g., 5TFMA5EC7PX011688)"
           style={{ width: '300px', padding: '5px' }}
         />
@@ -65,11 +70,13 @@ function App() {
           {keyFields.length > 0 && (
             <div className="key-fields">
               <h2>Key Details</h2>
-              <ul>
+              <div className="grid">
                 {keyFields.map(field => (
-                  <li key={field.Variable}>{field.Variable}: {field.Value}</li>
+                  <div key={field.Variable} className="grid-item">
+                    <strong>{field.Variable}:</strong> {field.Value}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
           {results.length > 0 && (

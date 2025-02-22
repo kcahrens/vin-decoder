@@ -17,14 +17,16 @@
   font-size: 1.2em;
 }
 
-.key-fields ul {
-  list-style: none;
-  padding: 0;
-  text-align: left;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two columns */
+  gap: 10px; /* Space between items */
+  max-width: 400px; /* Limits grid width for compactness */
 }
 
-.key-fields li {
-  margin-bottom: 5px;
+.grid-item {
+  padding: 5px;
+  text-align: left;
 }
 
 button {
