@@ -126,23 +126,24 @@ function App() {
     console.log('Vehicle Data:', vehicleData);
   }, [vehicleData]);
 
+  // Updated key variables with display names and their corresponding API field names
   const keyVariables = [
-    'Make',
-    'Model',
-    'Year',
-    'Trim',
-    'Drive Type',
-    'Fuel Type',
-    'Transmission Speeds',
-    'Transmission Style',
-    'Engine Model'
+    { display: 'Make', apiField: 'Make' },
+    { display: 'Model', apiField: 'Model' },
+    { display: 'Year', apiField: 'Year' },
+    { display: 'Trim', apiField: 'Trim' },
+    { display: 'Drive Type', apiField: 'Drive Type' },
+    { display: 'Fuel:', apiField: 'Fuel Type - Primary' }, // Changed to match API field
+    { display: 'Transmission Speeds', apiField: 'Transmission Speeds' },
+    { display: 'Transmission Style', apiField: 'Transmission Style' },
+    { display: 'Engine Model', apiField: 'Engine Model' },
   ];
 
   const keyFields = vehicleData
     ? keyVariables.map((variable) => {
-        const row = vehicleData.find((row) => row.Variable === variable);
+        const row = vehicleData.find((row) => row.Variable === variable.apiField);
         return {
-          Variable: variable,
+          Variable: variable.display, // Use display name
           Value: row ? row.Value : 'N/A',
         };
       })
@@ -201,7 +202,7 @@ function App() {
               {keyFields.map((field) => (
                 <Grid item xs={6} key={field.Variable}>
                   <Typography>
-                    <strong>{field.Variable}:</strong> {field.Value}
+                    <strong>{field.Variable}</strong> {field.Value}
                   </Typography>
                 </Grid>
               ))}
