@@ -1,112 +1,237 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  TextField,
+  Button,
+  Grid,
+  Typography,
+  Paper,
+  CssBaseline,
+  ThemeProvider,
+  createTheme,
+  IconButton,
+} from '@mui/material';
+import { Brightness4, Brightness7 } from '@mui/icons-material';
 import axios from 'axios';
-import './App.css';
+
+// Define light and dark themes (unchanged)
+const lightTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#1976d2',
+    },
+    background: {
+      default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#000000',
+      secondary: '#555555',
+    },
+  },
+  typography: {
+    h4: {
+      fontSize: '2rem',
+      fontWeight: 700,
+    },
+    h5: {
+      fontSize: '1.5rem',
+      fontWeight: 500,
+    },
+    h6: {
+      fontSize: '1.25rem',
+      fontWeight: 500,
+    },
+  },
+});
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#90caf9',
+    },
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: '#b0b0b0',
+    },
+  },
+  typography: {
+    h4: {
+      fontSize: '2rem',
+      fontWeight: 700,
+    },
+    h5: {
+      fontSize: '1.5rem',
+      fontWeight: 500,
+    },
+    h6: {
+      fontSize: '1.25rem',
+      fontWeight: 500,
+    },
+  },
+});
 
 function App() {
   const [vin, setVin] = useState('');
-  const [results, setResults] = useState([]);
-  const [keyFields, setKeyFields] = useState([]);
+  const [vehicleData, setVehicleData] = useState(null);
   const [showFullDetails, setShowFullDetails] = useState(false);
+  const [error, setError] = useState(null);
+  const [darkMode, setDarkMode] = useState(
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
 
-  const handleDecode = async () => {
+  // Detect system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => setDarkMode(e.matches);
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const handleVinChange = (event) => {
+    setVin(event.target.value);
+  };
+
+  const decodeVin = async () => {
+    setError(null);
     try {
+      console.log('Decoding VIN:', vin);
       const response = await axios.post('http://localhost:5010/decode', { vin });
-      const data = response.data;
-
-      if (data.length > 0 && data[0].Variable === 'Error') {
-        setResults(data);
-        setKeyFields([]);
-      } else {
-        const keyVariables = [
-          'Model Year',
-          'Make',
-          'Model',
-          'Trim',
-          'Drive Type',
-          'Engine Model',
-          'Fuel Type'  // Changed from 'Fuel Type - Primary'
-        ];
-        const keyFields = keyVariables.map(variable => ({
-          Variable: variable,
-          Value: data.find(row => row.Variable === variable)?.Value || 'N/A'
-        }));
-        setKeyFields(keyFields);
-        setResults(data);
-        setShowFullDetails(false);
-      }
+      console.log('API Response:', response.data);
+      setVehicleData(response.data);
     } catch (error) {
-      console.error('Error decoding VIN:', error.response ? error.response.data : error.message);
-      setResults([{ Variable: 'Error', Value: error.response ? error.response.data[0].Value : 'Failed to connect to server' }]);
-      setKeyFields([]);
+      console.error('Error decoding VIN:', error);
+      setError('Failed to decode VIN. Please check the VIN and try again.');
+      setVehicleData(null);
     }
   };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    decodeVin();
+  };
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+  };
+
+  useEffect(() => {
+    console.log('Vehicle Data:', vehicleData);
+  }, [vehicleData]);
+
+  const keyVariables = [
+    'Make',
+    'Model',
+    'Year',
+    'Trim',
+    'Drive Type',
+    'Fuel Type',
+    'Transmission Speeds',
+    'Transmission Style',
+    'Engine Model'
+  ];
+
+  const keyFields = vehicleData
+    ? keyVariables.map((variable) => {
+        const row = vehicleData.find((row) => row.Variable === variable);
+        return {
+          Variable: variable,
+          Value: row ? row.Value : 'N/A',
+        };
+      })
+    : [];
+
   return (
-    <div className="App">
-      <h1>VIN Decoder</h1>
-      <div>
-        <input
-          type="text"
-          value={vin}
-          onChange={(e) => setVin(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              handleDecode(); // Triggers decode on Enter
-            }
-          }}
-          placeholder="Enter VIN (e.g., 5TFMA5EC7PX011688)"
-          style={{ width: '300px', padding: '5px' }}
-        />
-        <button onClick={handleDecode} style={{ marginLeft: '10px', padding: '5px 10px' }}>
-          Decode VIN
-        </button>
-      </div>
-      {results.length > 0 && results[0].Variable === 'Error' ? (
-        <div className="error">
-          <p>{results[0].Value}</p>
-        </div>
-      ) : (
-        <>
-          {keyFields.length > 0 && (
-            <div className="key-fields">
-              <h2>Key Details</h2>
-              <div className="grid">
-                {keyFields.map(field => (
-                  <div key={field.Variable} className="grid-item">
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <CssBaseline />
+      <Container maxWidth="lg" style={{ padding: '2rem' }}>
+        <Grid container spacing={2} alignItems="center" justifyContent="space-between">
+          <Grid item xs={11}>
+            <Typography variant="h4" gutterBottom>
+              VIN Decoder
+            </Typography>
+          </Grid>
+          <Grid item xs={1} style={{ textAlign: 'right' }}>
+            <IconButton onClick={toggleTheme} color="primary">
+              {darkMode ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
+          </Grid>
+        </Grid>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2} style={{ marginBottom: '1rem' }}>
+            <Grid item xs={9}>
+              <TextField
+                label="Enter VIN"
+                variant="outlined"
+                value={vin}
+                onChange={handleVinChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <Button variant="contained" color="primary" type="submit" fullWidth>
+                Decode VIN
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+        {error && (
+          <Typography color="error" style={{ marginTop: '1rem' }}>
+            {error}
+          </Typography>
+        )}
+        {vehicleData && vehicleData.length === 0 && (
+          <Typography style={{ marginTop: '1rem' }}>
+            No data found for this VIN.
+          </Typography>
+        )}
+        {vehicleData && vehicleData.length > 0 && (
+          <Paper elevation={3} style={{ padding: '2rem', marginTop: '2rem' }}>
+            <Typography variant="h5" gutterBottom>
+              Vehicle Information
+            </Typography>
+            <Grid container spacing={2}>
+              {keyFields.map((field) => (
+                <Grid item xs={6} key={field.Variable}>
+                  <Typography>
                     <strong>{field.Variable}:</strong> {field.Value}
-                  </div>
-                ))}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setShowFullDetails(!showFullDetails)}
+              style={{ marginTop: '10px' }}
+            >
+              {showFullDetails ? 'Hide Full Details' : 'Show Full Details'}
+            </Button>
+            {showFullDetails && (
+              <div style={{ marginTop: '1rem' }}>
+                <Typography variant="h6">Full Details</Typography>
+                <Grid container spacing={2}>
+                  {vehicleData.map((row, index) => (
+                    <Grid item xs={6} key={index}>
+                      <Typography>
+                        <strong>{row.Variable}:</strong> {row.Value}
+                      </Typography>
+                    </Grid>
+                  ))}
+                </Grid>
               </div>
-            </div>
-          )}
-          {results.length > 0 && (
-            <>
-              <button onClick={() => setShowFullDetails(!showFullDetails)}>
-                {showFullDetails ? 'Hide Full Details' : 'Show Full Details'}
-              </button>
-              {showFullDetails && (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Variable</th>
-                      <th>Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.map((row, index) => (
-                      <tr key={index}>
-                        <td>{row.Variable}</td>
-                        <td>{row.Value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </>
-          )}
-        </>
-      )}
-    </div>
+            )}
+          </Paper>
+        )}
+      </Container>
+    </ThemeProvider>
   );
 }
 
