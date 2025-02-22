@@ -128,15 +128,15 @@ function App() {
 
   // Updated key variables with display names and their corresponding API field names
   const keyVariables = [
-    { display: 'Make', apiField: 'Make' },
-    { display: 'Model', apiField: 'Model' },
-    { display: 'Year', apiField: 'Year' },
-    { display: 'Trim', apiField: 'Trim' },
-    { display: 'Drive Type', apiField: 'Drive Type' },
-    { display: 'Fuel:', apiField: 'Fuel Type - Primary' }, // Changed to match API field
-    { display: 'Transmission Speeds', apiField: 'Transmission Speeds' },
-    { display: 'Transmission Style', apiField: 'Transmission Style' },
-    { display: 'Engine Model', apiField: 'Engine Model' },
+    { display: 'Make:', apiField: 'Make' },
+    { display: 'Model:', apiField: 'Model' },
+    { display: 'Year:', apiField: 'Model Year' }, // Changed from 'Year' to 'Model Year'
+    { display: 'Trim:', apiField: 'Trim' },
+    { display: 'Drive Type:', apiField: 'Drive Type' },
+    { display: 'Fuel:', apiField: 'Fuel Type - Primary' },
+    { display: 'Transmission Speeds:', apiField: 'Transmission Speeds' },
+    { display: 'Transmission Style:', apiField: 'Transmission Style' },
+    { display: 'Engine Model:', apiField: 'Engine Model' },
   ];
 
   const keyFields = vehicleData
